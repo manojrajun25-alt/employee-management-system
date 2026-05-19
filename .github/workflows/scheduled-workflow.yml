@@ -1,8 +1,8 @@
-name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions
+name: GitHub SCHEDULED WorkFlow Demo
+run-name: ${{ github.actor }} is testing out GitHub SCHEDULED workflow
 on:
   schedule:
-    - cron: '02 12 * * *' //min/hour/day of month/month/day of week (uses UTC time)
+    - cron: '02 12 * * *' #min/hour/day of month/month/day of week (uses UTC time)
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
