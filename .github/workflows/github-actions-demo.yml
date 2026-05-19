@@ -1,34 +1,48 @@
-name: Java CI Pipeline
+name: Github Action Template
 
-  on:
-    push:
-      branches:
-        - main
-        - develop
+on:
 
-    pull_request:
-      branches:
-        - main
-        - develop
+  pull_request:
+    branches: [ "main" ]
 
-  jobs:
-    build:
+  schedule:
+    - cron:  '30 5,17 * * *'
 
-      runs-on: ubuntu-latest
+  workflow_call:
+    inputs:
+      username:
+        description: 'A username passed from the caller workflow'
+        default: 'john-doe'
+        required: false
+        type: string
 
-      steps:
+  permissions:
+    actions: read|write|none
 
-        - name: Checkout Source Code
-          uses: actions/checkout@v4
+  # permissions : read|write|none
 
-        - name: Setup Java 17
-          uses: actions/setup-java@v4
-          with:
-            java-version: '17'
-            distribution: 'temurin'
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
 
-        - name: Build Application
-          run: mvn clean install
+  # This workflow contains a single job called "build"
 
-        - name: Run Test Cases
-          run: mvn test
+  build:
+
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+
+    steps:
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        if: ${{ github.event_name == 'pull_request' && github.event.action == 'unassigned' }}
+        shell: zsh
+        name: NPM Install Package
+        run: npm install
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          first_name: Github
+          last_name: Action
+          args: The ${{ github.event_name }} event triggered this step.
+          entrypoint: /bin/echo
