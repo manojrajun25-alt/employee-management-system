@@ -1,18 +1,85 @@
-name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: [push]
+#name: GitHub Actions Demo
+#run-name: ${{ github.actor }} is testing out GitHub Actions
+#on: [push]
+#jobs:
+#  Explore-GitHub-Actions:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+#      - run: echo "This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+#      - run: echo "The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+#      - name: Check out repository code
+#        uses: actions/checkout@v6
+#      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+#      - run: echo "The workflow is now ready to test your code on the runner."
+#      - name: List files in the repository
+#        run: |
+#          ls ${{ github.workspace }}
+#      - run: echo "This job's status is ${{ job.status }}."
+
+
+# Language: YAML
+# This GitHub Actions workflow demonstrates CI/CD for a Java Spring Boot project.
+# It runs on push and pull request, builds, tests, caches dependencies, and deploys.
+
+name: Java Spring Boot CI/CD Demo
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
 jobs:
-  Explore-GitHub-Actions:
+  build:
     runs-on: ubuntu-latest
+    env:
+      JAVA_HOME: /usr/lib/jvm/adoptopenjdk-17-hotspot
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v6
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
-      - name: List files in the repository
+      # Step 1: Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up JDK (Java 17 in this example)
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      # Step 3: Cache Maven dependencies
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      # Step 4: Build the project and run tests
+      - name: Build and Test with Maven
+        run: mvn clean verify
+
+      # Step 5: Run static code analysis (optional, using SpotBugs)
+      - name: SpotBugs Analysis
+        run: mvn com.github.spotbugs:spotbugs-maven-plugin:spotbugs
+
+      # Step 6: Package the Spring Boot application
+      - name: Package Application
+        run: mvn package
+
+      # Step 7: Deploy to staging (demo: just echo for now)
+      - name: Deploy to Staging (demo)
+        if: github.ref == 'refs/heads/main'
         run: |
-          ls ${{ github.workspace }}
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+          echo "Deploying Spring Boot app to staging server..."
+          echo "This is a demo step."
+
+      # Step 8: Publish build artifacts (optional)
+      - name: Upload Jar Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: spring-boot-app
+          path: target/*.jar
